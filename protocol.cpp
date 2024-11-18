@@ -12,7 +12,7 @@ bool between(seq_nr a, seq_nr b, seq_nr c) {
 // Send a data frame
 void send_data(seq_nr frame_nr, seq_nr frame_expected, const vector<Packet>& buffer) {
     Frame s;
-    s.kind = FrameKind::Data; // Set frame kind
+    s.kind = Data; // Set frame kind
     s.info = buffer[frame_nr]; // Insert packet into frame
     s.seq = frame_nr; // Set sequence number
     s.ack = (frame_expected + MAX_SEQ) % (MAX_SEQ + 1); // Set piggybacked ACK
