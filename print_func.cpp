@@ -30,9 +30,6 @@ void wait_for_event(EventType *event) {
         case NetworkLayerReady:
             cout << "Event occurred: NetworkLayerReady" << endl;
             break;
-        default:
-            cout << "Unknown event occurred!" << endl;
-            break;
     }
 }
 
