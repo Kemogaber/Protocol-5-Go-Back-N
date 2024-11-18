@@ -15,7 +15,7 @@ struct Packet {
 };
 
 // Frame kind enumeration
-enum class FrameKind { 
+enum FrameKind { 
     Data,  // Data frame
     Ack,   // Acknowledgment frame
     Nak    // Negative acknowledgment frame
@@ -30,7 +30,7 @@ struct Frame {
 };
 
 // Event type enumeration
-enum class EventType { 
+enum EventType { 
     FrameArrival, 
     CksumErr, 
     Timeout, 

@@ -4,8 +4,6 @@
 
 using namespace std;
 
-#define MAX_SEQ 7
-
 // Check if `a <= b < c` circularly
 bool between(seq_nr a, seq_nr b, seq_nr c) {
     return ((a <= b && b < c) || (c < a && a <= b) || (b < c && c < a));
@@ -39,14 +37,14 @@ void protocol5() {
         wait_for_event(&event);
 
         switch (event) {
-            case EventType::NetworkLayerReady:
+            case NetworkLayerReady:
                 from_network_layer(&buffer[next_frame_to_send]);
                 nbuffered++;
                 send_data(next_frame_to_send, frame_expected, buffer);
                 inc(next_frame_to_send); // Use the macro to increment
                 break;
 
-            case EventType::FrameArrival:
+            case FrameArrival:
                 Frame r;
                 from_physical_layer(&r);
 
@@ -62,11 +60,11 @@ void protocol5() {
                 }
                 break;
 
-            case EventType::CksumErr:
+            case CksumErr:
                 // Ignore bad frames
                 break;
 
-            case EventType::Timeout:
+            case Timeout:
                 next_frame_to_send = ack_expected;
                 for (seq_nr i = 0; i < nbuffered; i++) {
                     send_data(next_frame_to_send, frame_expected, buffer);
