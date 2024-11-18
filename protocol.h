@@ -1,35 +1,56 @@
-#define MAX PKT 1024 /* determines packet size in bytes */
-typedef enum {false, true} boolean; /* boolean type */
-typedef unsigned int seq nr; /* sequence or ack numbers */
-typedef struct {unsigned char data[MAX PKT];} packet; /* packet definition */
-typedef enum {data, ack, nak} frame kind; /* frame kind definition */
-typedef struct { /* frames are transported in this layer */
-frame kind kind; /* what kind of frame is it? */
-seq nr seq; /* sequence number */
-seq nr ack; /* acknowledgement number */
-packet info; /* the network layer packet */
-} frame;
-/* Wait for an event to happen; return its type in event. */
-void wait for event(event type *event);
-/* Fetch a packet from the network layer for transmission on the channel. */
-void from network layer(packet *p);
-/* Deliver information from an inbound frame to the network layer. */
-void to network layer(packet *p);
-/* Go get an inbound frame from the physical layer and copy it to r. */
-void from physical layer(frame *r);
-/* Pass the frame to the physical layer for transmission. */
-void to physical layer(frame *s);
-/* Start the clock running and enable the timeout event. */
-void start timer(seq nr k);
-/* Stop the clock and disable the timeout event. */
-void stop timer(seq nr k);
-/* Start an auxiliary timer and enable the ack timeout event. */
-void start ack timer(void);
-/* Stop the auxiliary timer and disable the ack timeout event. */
-void stop ack timer(void);
-/* Allow the network layer to cause a network layer ready event. */
-void enable network layer(void);
-/* Forbid the network layer from causing a network layer ready event. */
-void disable network layer(void);
-/* Macro inc is expanded in-line: increment k circularly. */
-#define inc(k) if (k < MAX SEQ) k = k + 1; else k = 0
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
+
+#include <cstddef> // for size_t
+
+// Constants
+#define MAX_PKT 1024 // Determines packet size in bytes
+#define MAX_SEQ 7    // Maximum sequence number (based on protocol)
+
+typedef unsigned int seq_nr; // Sequence or acknowledgment numbers
+
+// Packet definition
+struct Packet {
+    unsigned char data[MAX_PKT]; // Packet data
+};
+
+// Frame kind enumeration
+enum FrameKind { 
+    Data,  // Data frame
+    Ack,   // Acknowledgment frame
+    Nak    // Negative acknowledgment frame
+};
+
+// Frame definition
+struct Frame {
+    FrameKind kind;  // Frame kind (data/ack/nak)
+    seq_nr seq;      // Sequence number
+    seq_nr ack;      // Acknowledgment number
+    Packet info;     // Network layer packet
+};
+
+// Event type enumeration
+enum EventType { 
+    FrameArrival, 
+    CksumErr, 
+    Timeout, 
+    NetworkLayerReady 
+};
+
+// Function Prototypes
+void wait_for_event(EventType *event);            // Wait for an event
+void from_network_layer(Packet *p);              // Fetch packet from network layer
+void to_network_layer(Packet *p);                // Deliver packet to network layer
+void from_physical_layer(Frame *r);              // Get frame from physical layer
+void to_physical_layer(Frame *s);                // Send frame to physical layer
+void start_timer(seq_nr k);                      // Start timer
+void stop_timer(seq_nr k);                       // Stop timer
+void start_ack_timer();                          // Start acknowledgment timer
+void stop_ack_timer();                           // Stop acknowledgment timer
+void enable_network_layer();                     // Allow network layer events
+void disable_network_layer();                    // Forbid network layer events
+
+// Macro to increment sequence number circularly
+#define inc(k) if ((k) < MAX_SEQ) (k)++; else (k) = 0
+
+#endif // PROTOCOL_H
