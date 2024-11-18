@@ -39,10 +39,6 @@ void wait_for_event(EventType *event) {
 void from_network_layer(Packet *p) {
     cout << "Fetching packet from network layer..." << endl;
     usleep(200); // Simulate fetching (200 microseconds delay)
-    // Simulate packet data
-    for (size_t i = 0; i < MAX_PKT; i++) {
-        p->data[i] = static_cast<unsigned char>(i % 256); // Example data
-    }
     cout << "Packet fetched successfully." << endl;
 }
 
@@ -50,22 +46,13 @@ void to_network_layer(Packet *p) {
     cout << "Delivering packet to network layer..." << endl;
     usleep(200); // Simulate delivery (200 microseconds delay)
     cout << "Packet delivered: ";
-    for (size_t i = 0; i < 10; i++) { // Display first 10 bytes
-        cout << static_cast<int>(p->data[i]) << " ";
-    }
+   
     cout << "..." << endl;
 }
 
 void from_physical_layer(Frame *r) {
     cout << "Fetching frame from physical layer..." << endl;
     usleep(200); // Simulate fetching (200 microseconds delay)
-    // Simulate frame data
-    r->kind = Data;
-    r->seq = 1;
-    r->ack = 0;
-    for (size_t i = 0; i < MAX_PKT; i++) {
-        r->info.data[i] = static_cast<unsigned char>(i % 256); // Example data
-    }
     cout << "Frame fetched successfully." << endl;
 }
 
