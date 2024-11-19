@@ -10,73 +10,92 @@ bool between(seq_nr a, seq_nr b, seq_nr c) {
 }
 
 // Send a data frame
-void send_data(seq_nr frame_nr, seq_nr frame_expected, const vector<Packet>& buffer) {
+Frame send_data(seq_nr frame_nr, seq_nr frame_expected,seq_nr counter, const vector<Packet>& data) {
     Frame s;
     s.kind = Data; // Set frame kind
-    s.info = buffer[frame_nr]; // Insert packet into frame
+    s.info = data[counter]; // Insert packet into frame
     s.seq = frame_nr; // Set sequence number
     s.ack = (frame_expected + MAX_SEQ) % (MAX_SEQ + 1); // Set piggybacked ACK
 
     to_physical_layer(&s); // Transmit the frame
     start_timer(frame_nr); // Start the timer
-    cout << "Sent frame with seq: " << s.seq << " and ack: " << s.ack << endl;
+   cout << "Sent frame with seq: " << s.seq << " and ack: " << s.ack << " data: " ;
+for (int i = 0; i < MAX_PKT; i++) {
+    cout << s.info.data[i] << " ";
+}
+cout << endl;
+    return s;
 }
 
 // Sliding window protocol
-void protocol5() {
+void protocol5(vector<Packet> data) {
+    queue<Frame> myQueue;
+    seq_nr counter=0;
     seq_nr next_frame_to_send = 0;
     seq_nr ack_expected = 0;
     seq_nr frame_expected = 0;
-    vector<Packet> buffer(MAX_SEQ + 1);
     seq_nr nbuffered = 0;
+    seq_nr Max_Window_Size=MAX_SEQ+1;
+    bool Flag;
     EventType event;
 
-    enable_network_layer();
-
-    while (true) {
-        wait_for_event(&event);
-
+    Flag=enable_network_layer();
+    cout << "Starting protocol5 with " << data.size() << " packets." << endl;
+    while (counter<data.size()) {
+        wait_for_event(&event, Flag);
         switch (event) {
-            case NetworkLayerReady:
-                from_network_layer(&buffer[next_frame_to_send]);
+            case NetworkLayerReady:{
+                if(nbuffered < MAX_SEQ){
+                from_network_layer(data[counter]);
+                myQueue.push(send_data(next_frame_to_send, frame_expected, counter, data));
                 nbuffered++;
-                send_data(next_frame_to_send, frame_expected, buffer);
+                counter++;
                 inc(next_frame_to_send); // Use the macro to increment
+                }
+                else{
+                    cout << "Buffer is Full" << endl;
+                    Flag=disable_network_layer();
+                }
                 break;
-
+        }
             case FrameArrival:
-                Frame r;
+            {
+                Frame r=myQueue.front();
+                myQueue.pop();
                 from_physical_layer(&r);
 
-                if (r.seq == frame_expected) {
-                    to_network_layer(&r.info);
+                if ( r.seq == frame_expected) {
+                    to_network_layer(r.info);
                     inc(frame_expected);
+                    cout << frame_expected<<endl;
                 }
 
                 while (between(ack_expected, r.ack, next_frame_to_send)) {
                     nbuffered--;
+                    if(!Flag) Flag=enable_network_layer();
                     stop_timer(ack_expected);
                     inc(ack_expected);
                 }
                 break;
+            }
 
-            case CksumErr:
-                // Ignore bad frames
+            case CksumErr:{
+                cout << "Error is being corrected at Receiver" << endl;
                 break;
+            }
 
-            case Timeout:
+            case Timeout:{
                 next_frame_to_send = ack_expected;
-                for (seq_nr i = 0; i < nbuffered; i++) {
-                    send_data(next_frame_to_send, frame_expected, buffer);
+                counter=((counter-nbuffered)>0?counter-nbuffered:0);
+                for (int i=0;i<nbuffered;i++){
+                    from_network_layer(data[counter]);
+                    myQueue.push(send_data(next_frame_to_send,ack_expected,counter,data));
+                    counter++;
                     inc(next_frame_to_send);
                 }
                 break;
-        }
-
-        if (nbuffered < MAX_SEQ) {
-            enable_network_layer();
-        } else {
-            disable_network_layer();
+            }
         }
     }
+    cout << "Simulation Has Ended" << endl;
 }
