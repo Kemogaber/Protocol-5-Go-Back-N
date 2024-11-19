@@ -3,12 +3,13 @@
 
 #include <cstddef> // for size_t
 #include <vector> // Include the vector header
+#include <queue>
 
 // Constants
 #define MAX_PKT 2 // Determines packet size in bytes
 #define MAX_SEQ 7    // Maximum sequence number (based on protocol)
 using namespace std;
-typedef unsigned int seq_nr; // Sequence or acknowledgment numbers
+typedef int seq_nr; // Sequence or acknowledgment numbers
 
 // Packet definition
 struct Packet {
@@ -54,5 +55,6 @@ void protocol5(vector<Packet> data);
 
 // Macro to increment sequence number circularly
 #define inc(k) if ((k) < MAX_SEQ) (k)++; else (k) = 0
+#define inc_2(counter,size) if ((counter)<size) (counter)++;else (counter)=0;
 
 #endif // PROTOCOL_H

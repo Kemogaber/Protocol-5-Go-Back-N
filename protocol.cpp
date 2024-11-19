@@ -29,7 +29,7 @@ cout << endl;
 
 // Sliding window protocol
 void protocol5(vector<Packet> data) {
-    Frame temp_frame;
+    queue<Frame> myQueue;
     seq_nr counter=0;
     seq_nr next_frame_to_send = 0;
     seq_nr ack_expected = 0;
@@ -47,7 +47,7 @@ void protocol5(vector<Packet> data) {
             case NetworkLayerReady:{
                 if(nbuffered < MAX_SEQ){
                 from_network_layer(data[counter]);
-                temp_frame=send_data(next_frame_to_send, frame_expected, counter, data);
+                myQueue.push(send_data(next_frame_to_send, frame_expected, counter, data));
                 nbuffered++;
                 counter++;
                 inc(next_frame_to_send); // Use the macro to increment
@@ -59,37 +59,43 @@ void protocol5(vector<Packet> data) {
                 break;
         }
             case FrameArrival:
-                from_physical_layer(&temp_frame);
+            {
+                Frame r=myQueue.front();
+                myQueue.pop();
+                from_physical_layer(&r);
 
-                if (temp_frame.seq == frame_expected) {
-                    to_network_layer(temp_frame.info);
+                if ( r.seq == frame_expected) {
+                    to_network_layer(r.info);
                     inc(frame_expected);
+                    cout << frame_expected<<endl;
                 }
 
-                while (between(ack_expected, temp_frame.ack, next_frame_to_send)) {
+                while (between(ack_expected, r.ack, next_frame_to_send)) {
                     nbuffered--;
                     if(!Flag) Flag=enable_network_layer();
                     stop_timer(ack_expected);
                     inc(ack_expected);
                 }
                 break;
+            }
 
-            case CksumErr:
+            case CksumErr:{
                 cout << "Error is being corrected at Receiver" << endl;
                 break;
+            }
 
-            case Timeout:
+            case Timeout:{
                 next_frame_to_send = ack_expected;
-                nbuffered=0;
-                counter=(counter-Max_Window_Size)>0?counter-Max_Window_Size:0;
-                for (int i=0;i<Max_Window_Size;i++){
+                counter=((counter-nbuffered)>0?counter-nbuffered:0);
+                for (int i=0;i<nbuffered;i++){
                     from_network_layer(data[counter]);
-                    temp_frame=send_data(next_frame_to_send,ack_expected,counter,data);
-                    nbuffered++;
+                    myQueue.push(send_data(next_frame_to_send,ack_expected,counter,data));
                     counter++;
                     inc(next_frame_to_send);
                 }
                 break;
+            }
         }
     }
+    cout << "Simulation Has Ended" << endl;
 }

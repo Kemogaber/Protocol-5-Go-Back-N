@@ -8,54 +8,35 @@ using namespace std;
 
 // Function Implementations
 void wait_for_event(EventType *event, bool isBufferFull) {
-    // Simulate waiting time (20 milliseconds)
-    usleep(20000);
+    // Predefined hardcoded event sequence
+    static const EventType eventSequence[] = {
+        NetworkLayerReady, FrameArrival,NetworkLayerReady ,FrameArrival, NetworkLayerReady, NetworkLayerReady , NetworkLayerReady, NetworkLayerReady,FrameArrival,Timeout, FrameArrival,FrameArrival, NetworkLayerReady,CksumErr,NetworkLayerReady ,Timeout, FrameArrival, 
+        NetworkLayerReady, FrameArrival, Timeout,NetworkLayerReady ,CksumErr, NetworkLayerReady,FrameArrival
+    };
+    
+    static int eventIndex = 0;  // Keep track of the current event index
 
-    // Seed the random number generator to ensure randomness
-    srand(time(0)); // Seed only once at the beginning of the program
-
-    // Generate a random event, the total probability adds up to 100
-    int randomEvent;
-
-    if (isBufferFull) {
-        // If the buffer is full, increase the chances for errors and FrameArrival
-        randomEvent = rand() % 100;  // Generate a random number between 0 and 99
-        if (randomEvent < 10) {  // 10% chance for error (CksumErr or Timeout)
-            int errorType = rand() % 2;  // 0 for CksumErr, 1 for Timeout
-            if (errorType == 0) {
-                cout << "Event occurred: CksumErr" << endl;
-                *event = CksumErr;
-            } else {
-                cout << "Event occurred: Timeout" << endl;
-                *event = Timeout;
-            }
-        } else if (randomEvent < 60) {  // 50% chance for FrameArrival
-            cout << "Event occurred: FrameArrival" << endl;
-            *event = FrameArrival;
-        } else {  // 40% chance for `Timeout`
-            cout << "Event occurred: Timeout" << endl;
-            *event = Timeout;
-        }
-    } else {
-        // If the buffer is not full, allow for `NetworkLayerReady` event and adjust other probabilities
-        randomEvent = rand() % 100;  // Generate a random number between 0 and 99
-        if (randomEvent < 50) {  // 50% chance for `NetworkLayerReady`
-            cout << "Event occurred: NetworkLayerReady" << endl;
-            *event = NetworkLayerReady;
-        } else if (randomEvent < 80) {  // 30% chance for `FrameArrival`
-            cout << "Event occurred: FrameArrival" << endl;
-            *event = FrameArrival;
-        } else {  // 20% chance for `CksumErr` or `Timeout`
-            int errorType = rand() % 2;  // 0 for CksumErr, 1 for Timeout
-            if (errorType == 0) {
-                cout << "Event occurred: CksumErr" << endl;
-                *event = CksumErr;
-            } else {
-                cout << "Event occurred: Timeout" << endl;
-                *event = Timeout;
-            }
-        }
+    // Loop through the predefined sequence of events
+    *event = eventSequence[eventIndex];
+    cout << endl ;
+    switch (*event) {
+        case FrameArrival:
+            cout << "FrameArrival Event occurred!" << endl;
+            break;
+        case CksumErr:
+            cout << "CksumErr Event occurred!" << endl;
+            break;
+        case Timeout:
+            cout << "Timeout Event occurred!" << endl;
+            break;
+        case NetworkLayerReady:
+            cout << "NetworkLayerReady Event occurred!" << endl;
+            break;
     }
+    cout << endl ;
+
+    // Increment the event index to loop through the array
+    eventIndex = (eventIndex + 1) % (sizeof(eventSequence) / sizeof(eventSequence[0]));
 }
 
 void from_network_layer(Packet p) {
