@@ -19,10 +19,11 @@ Frame send_data(seq_nr frame_nr, seq_nr frame_expected,seq_nr counter, const vec
 
     to_physical_layer(&s); // Transmit the frame
     start_timer(frame_nr); // Start the timer
-   cout << "Sent frame with seq: " << s.seq << " and ack: " << s.ack << " data: ";
+   cout << "Sent frame with seq: " << s.seq << " and ack: " << s.ack << " data: " ;
 for (int i = 0; i < MAX_PKT; i++) {
-    cout << s.info.data[i];
+    cout << s.info.data[i] << " ";
 }
+cout << endl;
     return s;
 }
 
@@ -35,13 +36,13 @@ void protocol5(vector<Packet> data) {
     seq_nr frame_expected = 0;
     seq_nr nbuffered = 0;
     seq_nr Max_Window_Size=MAX_SEQ+1;
+    bool Flag;
     EventType event;
 
-    enable_network_layer();
-
+    Flag=enable_network_layer();
+    cout << "Starting protocol5 with " << data.size() << " packets." << endl;
     while (counter<data.size()) {
-        wait_for_event(&event);
-
+        wait_for_event(&event, Flag);
         switch (event) {
             case NetworkLayerReady:{
                 if(nbuffered < MAX_SEQ){
@@ -50,12 +51,12 @@ void protocol5(vector<Packet> data) {
                 nbuffered++;
                 counter++;
                 inc(next_frame_to_send); // Use the macro to increment
-                break;
                 }
                 else{
                     cout << "Buffer is Full" << endl;
-                    break;
+                    Flag=disable_network_layer();
                 }
+                break;
         }
             case FrameArrival:
                 from_physical_layer(&temp_frame);
@@ -67,6 +68,7 @@ void protocol5(vector<Packet> data) {
 
                 while (between(ack_expected, temp_frame.ack, next_frame_to_send)) {
                     nbuffered--;
+                    if(!Flag) Flag=enable_network_layer();
                     stop_timer(ack_expected);
                     inc(ack_expected);
                 }
@@ -88,12 +90,6 @@ void protocol5(vector<Packet> data) {
                     inc(next_frame_to_send);
                 }
                 break;
-        }
-
-        if (nbuffered < MAX_SEQ) {
-            enable_network_layer();
-        } else {
-            disable_network_layer();
         }
     }
 }

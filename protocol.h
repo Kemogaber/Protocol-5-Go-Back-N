@@ -39,7 +39,7 @@ enum EventType {
 };
 
 // Function Prototypes
-void wait_for_event(EventType *event);            // Wait for an event
+void wait_for_event(EventType *event, bool isBufferFull);            // Wait for an event
 void from_network_layer(Packet p);             // Fetch packet from network layer
 void to_network_layer(Packet p);                // Deliver packet to network layer
 void from_physical_layer(Frame *r);             // Get frame from physical layer
@@ -48,8 +48,8 @@ void start_timer(seq_nr k);                      // Start timer
 void stop_timer(seq_nr k);                       // Stop timer
 void start_ack_timer();                          // Start acknowledgment timer
 void stop_ack_timer();                           // Stop acknowledgment timer
-void enable_network_layer();                     // Allow network layer events
-void disable_network_layer();                    // Forbid network layer events
+bool enable_network_layer();                     // Allow network layer events
+bool disable_network_layer();                    // Forbid network layer events
 void protocol5(vector<Packet> data);
 
 // Macro to increment sequence number circularly

@@ -7,45 +7,53 @@
 using namespace std;
 
 // Function Implementations
-void wait_for_event(EventType *event) {
-    cout << "Waiting for an event..." << endl;
-    usleep(20000); // Simulate waiting time (200 microseconds)
-    
-    // Randomly select an event
-    srand(time(0)); // Seed the random number generator
-    int randomEvent = rand() % 10; // Generate a random number between 0 and 3
-    *event = static_cast<EventType>(randomEvent);
+void wait_for_event(EventType *event, bool isBufferFull) {
+    // Simulate waiting time (20 milliseconds)
+    usleep(20000);
 
-    // Print the selected event
-    switch (randomEvent) {
-        case 0:
-        {
+    // Seed the random number generator to ensure randomness
+    srand(time(0)); // Seed only once at the beginning of the program
+
+    // Generate a random event, the total probability adds up to 100
+    int randomEvent;
+
+    if (isBufferFull) {
+        // If the buffer is full, increase the chances for errors and FrameArrival
+        randomEvent = rand() % 100;  // Generate a random number between 0 and 99
+        if (randomEvent < 10) {  // 10% chance for error (CksumErr or Timeout)
+            int errorType = rand() % 2;  // 0 for CksumErr, 1 for Timeout
+            if (errorType == 0) {
+                cout << "Event occurred: CksumErr" << endl;
+                *event = CksumErr;
+            } else {
+                cout << "Event occurred: Timeout" << endl;
+                *event = Timeout;
+            }
+        } else if (randomEvent < 60) {  // 50% chance for FrameArrival
             cout << "Event occurred: FrameArrival" << endl;
             *event = FrameArrival;
-            break;
-        }
-        case 1:
-        {
-            cout << "Event occurred: CksumErr" << endl;
-            *event = CksumErr;
-            break;
-        }
-        case 2:
-        {
+        } else {  // 40% chance for `Timeout`
             cout << "Event occurred: Timeout" << endl;
             *event = Timeout;
-            break;
         }
-        case 3:
-        {
+    } else {
+        // If the buffer is not full, allow for `NetworkLayerReady` event and adjust other probabilities
+        randomEvent = rand() % 100;  // Generate a random number between 0 and 99
+        if (randomEvent < 50) {  // 50% chance for `NetworkLayerReady`
             cout << "Event occurred: NetworkLayerReady" << endl;
             *event = NetworkLayerReady;
-            break;
-        }
-        default:
-        {
+        } else if (randomEvent < 80) {  // 30% chance for `FrameArrival`
             cout << "Event occurred: FrameArrival" << endl;
             *event = FrameArrival;
+        } else {  // 20% chance for `CksumErr` or `Timeout`
+            int errorType = rand() % 2;  // 0 for CksumErr, 1 for Timeout
+            if (errorType == 0) {
+                cout << "Event occurred: CksumErr" << endl;
+                *event = CksumErr;
+            } else {
+                cout << "Event occurred: Timeout" << endl;
+                *event = Timeout;
+            }
         }
     }
 }
@@ -53,13 +61,13 @@ void wait_for_event(EventType *event) {
 void from_network_layer(Packet p) {
     cout << "Fetching packet from network layer..." << endl;
     usleep(20000); // Simulate fetching (200 microseconds delay)
-    cout << "packet of value: " << p.data << "fetched successfully" << endl;
+    cout << "packet of value: " << p.data << " fetched successfully" << endl;
 }
 
 void to_network_layer(Packet p) {
     cout << "Delivering packet to network layer..." << endl;
     usleep(20000); // Simulate delivery (200 microseconds delay)
-    cout << "Packet Received: " << "..." << p.data;
+    cout << "Packet Received: " << "..." << p.data << endl;
 }
 
 void from_physical_layer(Frame *r) {
@@ -94,12 +102,14 @@ void stop_ack_timer() {
     usleep(20000); // Simulate timer stop (200 microseconds delay)
 }
 
-void enable_network_layer() {
+bool enable_network_layer() {
     cout << "Enabling network layer..." << endl;
     usleep(20000); // Simulate enabling (200 microseconds delay)
+    return true;
 }
 
-void disable_network_layer() {
+bool disable_network_layer() {
     cout << "Disabling network layer..." << endl;
     usleep(20000); // Simulate disabling (200 microseconds delay)
+    return false;
 }
