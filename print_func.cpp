@@ -7,84 +7,90 @@
 using namespace std;
 
 // Function Implementations
-void wait_for_event(EventType *event) {
-    cout << "Waiting for an event..." << endl;
-    usleep(200); // Simulate waiting time (200 microseconds)
+void wait_for_event(EventType *event, bool isBufferFull) {
+    // Predefined hardcoded event sequence
+    static const EventType eventSequence[] = {
+        NetworkLayerReady, FrameArrival,NetworkLayerReady ,FrameArrival, NetworkLayerReady, NetworkLayerReady , NetworkLayerReady, NetworkLayerReady,FrameArrival,Timeout, FrameArrival,FrameArrival, NetworkLayerReady,CksumErr,NetworkLayerReady ,Timeout, FrameArrival, 
+        NetworkLayerReady, FrameArrival, Timeout,NetworkLayerReady ,CksumErr, NetworkLayerReady,FrameArrival
+    };
     
-    // Randomly select an event
-    srand(time(0)); // Seed the random number generator
-    int randomEvent = rand() % 4; // Generate a random number between 0 and 3
-    *event = static_cast<EventType>(randomEvent);
+    static int eventIndex = 0;  // Keep track of the current event index
 
-    // Print the selected event
+    // Loop through the predefined sequence of events
+    *event = eventSequence[eventIndex];
+    cout << endl ;
     switch (*event) {
         case FrameArrival:
-            cout << "Event occurred: FrameArrival" << endl;
+            cout << "FrameArrival Event occurred!" << endl;
             break;
         case CksumErr:
-            cout << "Event occurred: CksumErr" << endl;
+            cout << "CksumErr Event occurred!" << endl;
             break;
         case Timeout:
-            cout << "Event occurred: Timeout" << endl;
+            cout << "Timeout Event occurred!" << endl;
             break;
         case NetworkLayerReady:
-            cout << "Event occurred: NetworkLayerReady" << endl;
+            cout << "NetworkLayerReady Event occurred!" << endl;
             break;
     }
+    cout << endl ;
+
+    // Increment the event index to loop through the array
+    eventIndex = (eventIndex + 1) % (sizeof(eventSequence) / sizeof(eventSequence[0]));
 }
 
-void from_network_layer(Packet *p) {
+void from_network_layer(Packet p) {
     cout << "Fetching packet from network layer..." << endl;
-    usleep(200); // Simulate fetching (200 microseconds delay)
-    cout << "Packet fetched successfully." << endl;
+    usleep(20000); // Simulate fetching (200 microseconds delay)
+    cout << "packet of value: " << p.data << " fetched successfully" << endl;
 }
 
-void to_network_layer(Packet *p) {
+void to_network_layer(Packet p) {
     cout << "Delivering packet to network layer..." << endl;
-    usleep(200); // Simulate delivery (200 microseconds delay)
-    cout << "Packet delivered: ";
-   
-    cout << "..." << endl;
+    usleep(20000); // Simulate delivery (200 microseconds delay)
+    cout << "Packet Received: " << "..." << p.data << endl;
 }
 
 void from_physical_layer(Frame *r) {
     cout << "Fetching frame from physical layer..." << endl;
-    usleep(200); // Simulate fetching (200 microseconds delay)
+    usleep(20000); // Simulate fetching (200 microseconds delay)
     cout << "Frame fetched successfully." << endl;
 }
 
 void to_physical_layer(Frame *s) {
     cout << "Sending frame to physical layer..." << endl;
-    usleep(200); // Simulate sending (200 microseconds delay)
+    usleep(20000); // Simulate sending (200 microseconds delay)
     cout << "Frame sent. Kind: " << s->kind << ", Seq: " << s->seq << ", Ack: " << s->ack << endl;
 }
 
 void start_timer(seq_nr k) {
     cout << "Starting timer for sequence number " << k << "..." << endl;
-    usleep(200); // Simulate timer start (200 microseconds delay)
+    usleep(20000); // Simulate timer start (200 microseconds delay)
 }
 
 void stop_timer(seq_nr k) {
     cout << "Stopping timer for sequence number " << k << "..." << endl;
-    usleep(200); // Simulate timer stop (200 microseconds delay)
+    usleep(20000); // Simulate timer stop (200 microseconds delay)
 }
 
 void start_ack_timer() {
     cout << "Starting acknowledgment timer..." << endl;
-    usleep(200); // Simulate timer start (200 microseconds delay)
+    usleep(20000); // Simulate timer start (200 microseconds delay)
 }
 
 void stop_ack_timer() {
     cout << "Stopping acknowledgment timer..." << endl;
-    usleep(200); // Simulate timer stop (200 microseconds delay)
+    usleep(20000); // Simulate timer stop (200 microseconds delay)
 }
 
-void enable_network_layer() {
+bool enable_network_layer() {
     cout << "Enabling network layer..." << endl;
-    usleep(200); // Simulate enabling (200 microseconds delay)
+    usleep(20000); // Simulate enabling (200 microseconds delay)
+    return true;
 }
 
-void disable_network_layer() {
+bool disable_network_layer() {
     cout << "Disabling network layer..." << endl;
-    usleep(200); // Simulate disabling (200 microseconds delay)
+    usleep(20000); // Simulate disabling (200 microseconds delay)
+    return false;
 }
