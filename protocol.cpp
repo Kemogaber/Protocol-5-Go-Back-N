@@ -21,7 +21,7 @@ Frame send_data(seq_nr frame_nr, seq_nr frame_expected,seq_nr counter, const vec
     start_timer(frame_nr); // Start the timer
    cout << "Sent frame with seq: " << s.seq << " and ack: " << s.ack << " data: " ;
 for (int i = 0; i < MAX_PKT; i++) {
-    cout << s.info.data[i] << " ";
+    cout << s.info.data[i];
 }
 cout << endl;
     return s;
@@ -45,7 +45,7 @@ void protocol5(vector<Packet> data) {
         wait_for_event(&event, Flag);
         switch (event) {
             case NetworkLayerReady:{
-                if(nbuffered < MAX_SEQ){
+                if(myQueue.size() < MAX_SEQ){
                 from_network_layer(data[counter]);
                 myQueue.push(send_data(next_frame_to_send, frame_expected, counter, data));
                 nbuffered++;
@@ -63,33 +63,34 @@ void protocol5(vector<Packet> data) {
                 Frame r=myQueue.front();
                 myQueue.pop();
                 from_physical_layer(&r);
-
                 if ( r.seq == frame_expected) {
                     to_network_layer(r.info);
                     inc(frame_expected);
-                    cout << frame_expected<<endl;
-                }
-
-                while (between(ack_expected, r.ack, next_frame_to_send)) {
                     nbuffered--;
                     if(!Flag) Flag=enable_network_layer();
                     stop_timer(ack_expected);
                     inc(ack_expected);
                 }
+
+                /*while (between(ack_expected, r.ack, next_frame_to_send)) {
+
+                }
+                */
                 break;
             }
 
             case CksumErr:{
-                cout << "Error is being corrected at Receiver" << endl;
+                cout << "Error is ignored" << endl;
                 break;
             }
 
             case Timeout:{
-                next_frame_to_send = ack_expected;
-                counter=((counter-nbuffered)>0?counter-nbuffered:0);
-                for (int i=0;i<nbuffered;i++){
+                int size=myQueue.size();
+                next_frame_to_send = myQueue.front().seq;
+                counter=((counter-size)>0?counter-size:0);
+                for (int i=0;i<size;i++){
                     from_network_layer(data[counter]);
-                    myQueue.push(send_data(next_frame_to_send,ack_expected,counter,data));
+                    send_data(next_frame_to_send,ack_expected,counter,data);
                     counter++;
                     inc(next_frame_to_send);
                 }

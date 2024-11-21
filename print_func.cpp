@@ -43,13 +43,13 @@ void wait_for_event(EventType *event, bool isBufferFull) {
 void from_network_layer(Packet p) {
     cout << "Fetching packet from network layer..." << endl;
     usleep(20000); // Simulate fetching (200 microseconds delay)
-    cout << "packet of value: " << p.data << " fetched successfully" << endl;
+    cout << "packet of value: " << p.data[0] << p.data[1]<< " fetched successfully" << endl;
 }
 
 void to_network_layer(Packet p) {
     cout << "Delivering packet to network layer..." << endl;
     usleep(20000); // Simulate delivery (200 microseconds delay)
-    cout << "Packet Received: " << "..." << p.data << endl;
+    cout << "Packet Received: " << "... " << p.data[0]<< p.data[1] << endl;
 
 }
 
@@ -66,7 +66,7 @@ void to_physical_layer(Frame *s) {
 
     usleep(20000); // Simulate sending (200 microseconds delay)
 
-    cout << "Frame sent. Kind: " << s->kind << ", Seq: " << s->seq << ", Ack: " << s->ack << endl;
+    cout << "Frame sent Seq: " << s->seq << ", Ack: " << s->ack << endl;
 }
 
 void start_timer(seq_nr k) {
